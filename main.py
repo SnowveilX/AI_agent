@@ -52,6 +52,31 @@ def save_history(messages):
         print(f"保存历史失败：{e}")
 
 
+def agent_chat(user_input: str) -> str:
+    """供web界面调用的单次对话接口"""
+    system_prompt = get_system_prompt(TOOL_REGISTRY)
+    messages = load_history(system_prompt)
+    messages.append({"role": "user", "content": user_input})
+    
+    for step in range(MAX_STEPS):
+        response = call_llm(messages, timeout=TIMEOUT, max_tokens=MAX_TURN_TOKENS)
+        messages.append({"role": "assistant", "content": response})
+        action_name, action_args = parse_action(response)
+        
+        if action_name is None:
+            messages.append({"role": "user", "content": "请严格按照格式输出 Action 或 Final Answer。"})
+            continue
+        if action_name == "final_answer":
+            save_history(messages)
+            return action_args["answer"]
+        if action_name in TOOL_REGISTRY:
+            tool_result = TOOL_REGISTRY[action_name](**action_args)
+            messages.append({"role": "tool", "content": f"{action_name} result: {tool_result}"})
+        
+    save_history(messages)
+    return "抱歉，未能在步骤限制内给出答案。"
+
+
 def main():
     system_prompt = get_system_prompt(TOOL_REGISTRY)
     messages = load_history(system_prompt)
