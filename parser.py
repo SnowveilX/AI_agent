@@ -13,9 +13,17 @@ def parse_action(response):
         return None, None
 
     try:
-        action_data = json.loads(match.group(1))
+        raw = match.group(1).strip()
+        while raw.endswith("}}"):
+            try:
+                json.loads(raw)
+                break
+            except json.JSONDecodeError:
+                raw = raw[:-1]
+        action_data = json.loads(raw)
     except json.JSONDecodeError:
         return None, None
+        
     action_name = action_data.get("name")
     args_args = action_data.get("args", {})
 
