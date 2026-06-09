@@ -1,5 +1,5 @@
 def get_system_prompt(TOOL_REGISTRY):
-    prompt = "You are an AI assistant that can use tools.\n"
+    prompt = "You are an AI assistant that can use tools. You have access to conversation history and MUST use it to answer questions about previous conversations.\n"
     prompt += "You must output in the following format:\n\n"
     prompt += "Thought: ...\n"
     prompt += "Action: {\"name\": \"tool_name\", \"args\": {...}}\n\n"
